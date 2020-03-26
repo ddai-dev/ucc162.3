@@ -11,6 +11,7 @@
 static AstNodePtr DirectDeclarator(void);
 static AstNodePtr PostfixDeclarator(void);
 static AstNodePtr Declarator(void);
+
 ////////////////////////////////////////////////////////////////
 /**
    direct-declarator:
@@ -36,11 +37,22 @@ static AstNodePtr DirectDeclarator(void){
  		direct-declarator
  		postfix-declarator [num]
  		postfix-declarator (void)
+
+   代表如下集合
+   { DirectDeclarator,
+     DirectDeclarator [num], 
+     DirectDeclarator (ParameterList),
+	 DirectDeclarator[num][num],
+	 DirectDeclarator(ParameterList)(ParameterList),
+	 DirectDeclarator[num](ParameterList),
+	 DirectDeclarator(ParameterList)[num], …
+	}
+	// page 21
 */
 static AstNodePtr PostfixDeclarator(void){
 	AstNodePtr decl = DirectDeclarator();
 	while(1){
-		if(curToken.kind == TK_LBRACKET){
+		if(curToken.kind == TK_LBRACKET){ // [num]
 			NEXT_TOKEN;
 			decl = CreateAstNode(TK_ARRAY,&curToken.value,NULL,decl);			
 			if(curToken.kind == TK_NUM){				
@@ -50,12 +62,12 @@ static AstNodePtr PostfixDeclarator(void){
 				decl->value.numVal = 0;
 			}
 			Expect(TK_RBRACKET);
-		}else if(curToken.kind == TK_LPAREN){
+		}else if(curToken.kind == TK_LPAREN){ // DirectDeclarator (ParameterList)
 			AstNodePtr * param;
 			NEXT_TOKEN;
 			decl = CreateAstNode(TK_FUNCTION,&curToken.value,NULL,decl);
-			param = &(decl->kids[0]);
-			while(curToken.kind == TK_INT){				
+			param = &(decl->kids[0]); // 左边孩子是参数列表
+			while(curToken.kind == TK_INT){	// todo 			
 				*param = CreateAstNode(TK_INT,&curToken.value,NULL,NULL);
 				param = &((*param)->kids[0]);
 				NEXT_TOKEN;
@@ -74,9 +86,14 @@ static AstNodePtr PostfixDeclarator(void){
    	declarator:
  				* declarator
  				postfix-declarator
+
+Declarator -> *Declarator | PostfixDeclarator 
+
+	{ PostfixDeclarator, *PostfixDeclarator,
+		**PostfixDeclarator, *** PostfixDeclarator, …}
  */
 static AstNodePtr Declarator(void){
-	if(curToken.kind == TK_MUL){
+	if(curToken.kind == TK_MUL){ // 一直把 "*" 匹配完为止
 		AstNodePtr pointerDec;
 		NEXT_TOKEN;
 		pointerDec = CreateAstNode(TK_POINTER,&curToken.value,NULL,NULL);
@@ -85,7 +102,10 @@ static AstNodePtr Declarator(void){
 	}
 	return PostfixDeclarator();
 }
-
+/**
+ * Declaration -> int Declarator
+ * 暂时只支持 int 声明的解析
+ */ 
 AstNodePtr Declaration(void){
 	AstNodePtr dec = NULL;
 	if(curToken.kind == TK_INT){

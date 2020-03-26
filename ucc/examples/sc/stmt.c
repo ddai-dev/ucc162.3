@@ -55,6 +55,10 @@ static int isPrefixOfStatement(TokenKind tk){
 	}
 	return 0;
 }
+
+/**
+ * "id = Expression" 视为赋值表达式, 赋值语句加上分号, 就构成了表达式语句 ExpressionStatement
+ */
 static AstStmtNodePtr ExpressionStatement(void){
 	if(curToken.kind == TK_ID){
 		//	id = expression;

@@ -1,0 +1,43 @@
+Program -> CompoundStatement
+Statement -> IfStatement | WhileStatement｜CompoundStatement ｜ExpressionStatement
+IfStatement -> if ( expression) Statement
+IfStatement -> if ( expression) Statement else Statement
+WhileStatement -> while(expression) Statement
+CompoundStatement -> { StatementList[opt]}
+StatementList -> Statement | StatementList Statement
+ExpressionStatement -> id = Expression ; 
+ExpressionStatement -> Declaration ; 
+Expression -> AdditiveExpression
+AdditiveExpression -> MultiplicativeExpression 
+AdditiveExpression -> AdditiveExpression + MultiplicativeExpression
+AdditiveExpression -> AdditiveExpression - MultiplicativeExpression
+MultiplicativeExpression -> PrimaryExpression 
+MultiplicativeExpression -> MultiplicativeExpression * PrimaryExpression 
+MultiplicativeExpression -> MultiplicativeExpression / PrimaryExpression 
+PrimaryExpression -> id | num | (Expression)
+Declaration -> int Declarator
+Declarator -> * Declarator | PostfixDeclarator 
+PostfixDeclarator -> DirectDeclarator | PostfixDeclarator [num] | PostfixDeclarator (void) 
+DirectDeclarator -> id | (Declarator)
+
+T -> a + T (1-2)
+T -> T + a (1-3)
+AdditveExpression T  MultiplicativeExpression a
+
+{
+    int (*f(void))[4];
+    int (*(*fp2)(void))( void);
+    if(c)
+        a = f;
+    else{
+        b = k;
+    }
+    while(c){
+        while(d){
+            if(e){
+                d = d - 1;
+            }
+        }
+        c = c - 1;
+    }
+}

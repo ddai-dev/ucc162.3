@@ -48,6 +48,9 @@ void Expect(TokenKind tk){
 }
 // 
 
+/**
+ * PrimaryExpression -> id | num | (Expression)
+ */
 static AstNodePtr PrimaryExpression(void){
 	AstNodePtr expr = NULL;
 	if(curToken.kind == TK_ID || curToken.kind == TK_NUM){
@@ -65,7 +68,18 @@ static AstNodePtr PrimaryExpression(void){
 }
 
 
-//	id - id - id -....
+/**
+ *  右递归
+ *  MultiplicativeExpression -> PrimaryExpression 
+ *  MultiplicativeExpression -> PrimaryExpression * MultiplicativeExpression 
+ *  MultiplicativeExpression -> PrimaryExpression / MultiplicativeExpression 
+ * 
+ 	*eg: 对于 100/10/2 来说
+
+ *  如果是右递归, 分析完 100/10 后，我们还不能为之构造语法树，我们要看一下 10 后面是否还有乘法或除法运算符，
+ *  如果 有，则运算数 10 要与其右侧的除法运算符先结合。因此先构造出来的语法树是 10/2
+ *  之后 再以这棵子树为右子树，之前已经分析得到的 100 作为左子树，以除法运算法为根结点，构 造一棵适合进行右结合运算的语法树
+ **/
 static AstNodePtr MultiplicativeExpression(void){
 #ifndef	MUL_RIGHT_ASSOCIATE
 	AstNodePtr left;
@@ -101,6 +115,12 @@ static AstNodePtr MultiplicativeExpression(void){
 #endif
 }
 
+/**
+ * AdditiveExpression -> MultiplicativeExpression 
+ * AdditiveExpression -> AdditiveExpression + MultiplicativeExpression
+ * AdditiveExpression -> AdditiveExpression - MultiplicativeExpression
+ * 
+*/
 static AstNodePtr AdditiveExpression(void){
 #ifndef	ADD_RIGHT_ASSOCIATE
 	AstNodePtr left;
@@ -153,7 +173,7 @@ static void Do_PrintNode(AstNodePtr pNode){
 	}
 }
 void VisitArithmeticNode(AstNodePtr pNode){
-	if(pNode && IsArithmeticNode(pNode)){
+	if(pNode && IsArithmeticNode(pNode)){ // 后序遍历
 		VisitArithmeticNode(pNode->kids[0]);
 		VisitArithmeticNode(pNode->kids[1]);
 		if(pNode->kids[0] && pNode->kids[1]){
